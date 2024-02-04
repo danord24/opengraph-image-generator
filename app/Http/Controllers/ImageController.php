@@ -2,9 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
+use App\Http\Requests\ImageRequest;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Facades\Validator;
 use shweshi\OpenGraph\OpenGraph;
 use Spatie\Browsershot\Browsershot;
 
@@ -13,21 +12,8 @@ class ImageController extends Controller
     /**
      * Handle the incoming request.
      */
-    public function __invoke(Request $request)
+    public function __invoke(ImageRequest $request)
     {
-        $validator = Validator::make($request->all(), [
-            'url' => ['required', 'string', 'active_url'],
-        ]);
-
-        if ($validator->fails()) {
-            echo '<ul>';
-            foreach ($validator->errors()->all() as $error) {
-                echo "<li>$error</li>";
-            }
-            echo '<ul>';
-            die();
-        }
-
         $filename = sha1($request->url);
 
         if (Storage::disk('local')->exists($filename . '.png')) {
@@ -39,7 +25,12 @@ class ImageController extends Controller
         $openGraph = new OpenGraph();
         $data = $openGraph->fetch($request->url);
 
-        // dd($data);
+        if (!$data['description'] && !$data['title']) {
+            return response()->json([
+                'error' => 'No meta data found',
+                'messages' => ['No meta data found for the given URL. Please check the URL is active and has content.']
+            ], 400);
+        }
 
         $template = view('templates.clean', [
             'url' => $data['url'] ?? null,
@@ -48,9 +39,9 @@ class ImageController extends Controller
         ]);
 
         $image = Browsershot::html($template)
-            // ->setNodeBinary('/usr/local/bin/node')
-            // ->setNpmBinary('/usr/local/bin/npm')
-            ->windowSize(1200, 640)
+            ->setNodeBinary(config('app.node_path'))
+            ->setNpmBinary(config('app.npm_path'))
+            ->windowSize(config('app.window_width'), config('app.window_height'))
             ->setOption('newHeadless', true)
             ->screenshot();
 

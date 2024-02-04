@@ -42,7 +42,7 @@ return [
     |
     */
 
-    'debug' => (bool) env('APP_DEBUG', false),
+    'debug' => (bool)env('APP_DEBUG', false),
 
     /*
     |--------------------------------------------------------------------------
@@ -186,5 +186,10 @@ return [
     'aliases' => Facade::defaultAliases()->merge([
         // 'Example' => App\Facades\Example::class,
     ])->toArray(),
+
+    'node_path' => env('NODE_PATH'),
+    'npm_path' => env('NPM_PATH'),
+    'window_height' => env('WINDOW_HEIGHT'),
+    'window_width' => env('WINDOW_WIDTH'),
 
 ];
