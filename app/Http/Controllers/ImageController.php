@@ -15,7 +15,6 @@ class ImageController extends Controller
      */
     public function __invoke(Request $request)
     {
-
         $validator = Validator::make($request->all(), [
             'url' => ['required', 'string', 'active_url'],
         ]);
@@ -40,6 +39,8 @@ class ImageController extends Controller
         $openGraph = new OpenGraph();
         $data = $openGraph->fetch($request->url);
 
+        // dd($data);
+
         $template = view('templates.clean', [
             'url' => $data['url'] ?? null,
             'title' => $data['title'] ?? null,
@@ -50,6 +51,7 @@ class ImageController extends Controller
             // ->setNodeBinary('/usr/local/bin/node')
             // ->setNpmBinary('/usr/local/bin/npm')
             ->windowSize(1200, 640)
+            ->setOption('newHeadless', true)
             ->screenshot();
 
         Storage::disk('local')->put($filename . '.png', $image);
